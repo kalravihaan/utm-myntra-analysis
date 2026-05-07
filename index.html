@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UTM Dashboard</title>
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">UTM · FY 25–26</div>
+</div>
+
+<div id="loading">Loading dashboard...</div>
+
+<div id="dashboard" style="display:none;">
+
+  <section class="hero">
+    <h1>Overall Dashboard</h1>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-value" id="salesQty"></div>
+        <div class="kpi-label">Sales Qty</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-value" id="revenue"></div>
+        <div class="kpi-label">Revenue</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-value" id="returns"></div>
+        <div class="kpi-label">Returns</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-value" id="returnRate"></div>
+        <div class="kpi-label">Return Rate</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chart-grid">
+    <div class="chart-card">
+      <h3>Monthly Sales</h3>
+      <canvas id="monthlySalesChart"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <h3>Monthly Revenue</h3>
+      <canvas id="monthlyRevenueChart"></canvas>
+    </div>
+  </section>
+
+  <section class="table-section">
+    <div class="table-header">
+      <h2>Top Styles</h2>
+
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search style id / article type"
+      />
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Brand</th>
+            <th>Style ID</th>
+            <th>Article Type</th>
+            <th>Sales</th>
+            <th>Revenue</th>
+            <th>Returns</th>
+            <th>Return %</th>
+            <th>ROS</th>
+          </tr>
+        </thead>
+
+        <tbody id="stylesTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
