@@ -1,8 +1,6 @@
-```javascript
+```javascript id="4e6q1j"
 const EXCEL_FILE = "master data final.xlsx";
 const SHEET_NAME = "Master Data";
-
-let dashboardData = [];
 
 async function loadExcel() {
 
@@ -18,146 +16,72 @@ async function loadExcel() {
 
     const worksheet = workbook.Sheets[SHEET_NAME];
 
-    dashboardData = XLSX.utils.sheet_to_json(worksheet, {
+    const data = XLSX.utils.sheet_to_json(worksheet, {
       defval: ""
     });
 
-    initializeDashboard(dashboardData);
-
-  } catch (error) {
-
-    console.error(error);
-
-    document.getElementById("loading").innerHTML =
-      "Failed to load Excel file";
-  }
-}
-
-function initializeDashboard(data) {
-
-  try {
-
-    buildKPIs(data);
-
-    buildCharts(data);
-
-    buildTable(data);
-
-    setupSearch(data);
-
-    document.getElementById("loading").style.display = "none";
-
-    document.getElementById("dashboard").style.display = "block";
+    buildDashboard(data);
 
   } catch(error) {
 
     console.error(error);
 
     document.getElementById("loading").innerHTML =
-      "Dashboard rendering failed";
+      "Excel loading failed";
   }
 }
 
-function buildKPIs(data) {
+function buildDashboard(data) {
 
-  const totalSales =
-    sumColumn(data, "Total Sales Qty");
+  try {
 
-  const totalRevenue =
-    sumColumn(data, "Revenue");
+    const totalSales = sumColumn(
+      data,
+      "Total Sales Qty"
+    );
 
-  const totalReturns =
-    sumColumn(data, "Total Return Qty");
+    const totalRevenue = sumColumn(
+      data,
+      "Revenue"
+    );
 
-  const returnRate =
-    totalSales > 0
-      ? ((totalReturns / totalSales) * 100).toFixed(1)
-      : 0;
+    const totalReturns = sumColumn(
+      data,
+      "Total Return Qty"
+    );
 
-  document.getElementById("salesQty").innerText =
-    formatNumber(totalSales);
+    document.getElementById("salesQty").innerText =
+      formatNumber(totalSales);
 
-  document.getElementById("revenue").innerText =
-    formatCurrency(totalRevenue);
+    document.getElementById("revenue").innerText =
+      formatCurrency(totalRevenue);
 
-  document.getElementById("returns").innerText =
-    formatNumber(totalReturns);
+    document.getElementById("returns").innerText =
+      formatNumber(totalReturns);
 
-  document.getElementById("returnRate").innerText =
-    `${returnRate}%`;
-}
+    const returnRate =
+      totalSales > 0
+        ? ((totalReturns / totalSales) * 100).toFixed(1)
+        : 0;
 
-function buildCharts(data) {
+    document.getElementById("returnRate").innerText =
+      `${returnRate}%`;
 
-  const monthlyMap = {};
+    buildTable(data);
 
-  data.forEach(row => {
+    document.getElementById("loading").style.display =
+      "none";
 
-    const month =
-      String(row["Month"] || "Unknown");
+    document.getElementById("dashboard").style.display =
+      "block";
 
-    if (!monthlyMap[month]) {
+  } catch(error) {
 
-      monthlyMap[month] = {
-        sales: 0,
-        revenue: 0
-      };
-    }
+    console.error(error);
 
-    monthlyMap[month].sales +=
-      cleanNumber(row["Total Sales Qty"]);
-
-    monthlyMap[month].revenue +=
-      cleanNumber(row["Revenue"]);
-  });
-
-  const labels = Object.keys(monthlyMap);
-
-  const salesValues =
-    labels.map(month => monthlyMap[month].sales);
-
-  const revenueValues =
-    labels.map(month => monthlyMap[month].revenue);
-
-  new Chart(
-    document.getElementById("monthlySalesChart"),
-    {
-      type: "bar",
-
-      data: {
-        labels,
-
-        datasets: [{
-          label: "Sales Qty",
-          data: salesValues
-        }]
-      },
-
-      options: {
-        responsive: true
-      }
-    }
-  );
-
-  new Chart(
-    document.getElementById("monthlyRevenueChart"),
-    {
-      type: "line",
-
-      data: {
-        labels,
-
-        datasets: [{
-          label: "Revenue",
-          data: revenueValues
-        }]
-      },
-
-      options: {
-        responsive: true
-      }
-    }
-  );
+    document.getElementById("loading").innerHTML =
+      "Dashboard failed";
+  }
 }
 
 function buildTable(data) {
@@ -167,58 +91,22 @@ function buildTable(data) {
 
   tbody.innerHTML = "";
 
-  data.forEach(row => {
+  data.slice(0, 100).forEach(row => {
 
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
       <td>${row["Brand"] || ""}</td>
-
       <td>${row["Style id"] || ""}</td>
-
       <td>${row["Article Type"] || ""}</td>
-
-      <td>${formatNumber(cleanNumber(row["Total Sales Qty"]))}</td>
-
-      <td>${formatCurrency(cleanNumber(row["Revenue"]))}</td>
-
-      <td>${formatNumber(cleanNumber(row["Total Return Qty"]))}</td>
-
-      <td>${row["Return %"] || 0}</td>
-
-      <td>${row["ROS"] || 0}</td>
+      <td>${cleanNumber(row["Total Sales Qty"])}</td>
+      <td>${cleanNumber(row["Revenue"])}</td>
+      <td>${cleanNumber(row["Total Return Qty"])}</td>
+      <td>${row["Return %"] || ""}</td>
+      <td>${row["ROS"] || ""}</td>
     `;
 
     tbody.appendChild(tr);
-  });
-}
-
-function setupSearch(data) {
-
-  const input =
-    document.getElementById("searchInput");
-
-  input.addEventListener("input", function() {
-
-    const value = this.value.toLowerCase();
-
-    const filtered = data.filter(row => {
-
-      return (
-
-        String(row["Style id"] || "")
-          .toLowerCase()
-          .includes(value)
-
-        ||
-
-        String(row["Article Type"] || "")
-          .toLowerCase()
-          .includes(value)
-      );
-    });
-
-    buildTable(filtered);
   });
 }
 
@@ -233,15 +121,12 @@ function sumColumn(data, columnName) {
 
 function cleanNumber(value) {
 
-  if (value === null || value === undefined || value === "") {
-    return 0;
-  }
+  if (!value) return 0;
 
   const cleaned =
     String(value)
       .replace(/,/g, "")
-      .replace(/%/g, "")
-      .trim();
+      .replace(/%/g, "");
 
   const number = Number(cleaned);
 
