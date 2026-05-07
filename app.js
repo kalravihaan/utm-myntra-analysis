@@ -1,12 +1,15 @@
+```javascript
 const EXCEL_FILE = "master data final.xlsx";
 const SHEET_NAME = "Master Data";
 
 let dashboardData = [];
 
 async function loadExcel() {
+
   try {
 
     const response = await fetch(EXCEL_FILE);
+
     const arrayBuffer = await response.arrayBuffer();
 
     const workbook = XLSX.read(arrayBuffer, {
@@ -22,6 +25,7 @@ async function loadExcel() {
     initializeDashboard(dashboardData);
 
   } catch (error) {
+
     console.error(error);
 
     document.getElementById("loading").innerHTML =
@@ -42,9 +46,11 @@ function initializeDashboard(data) {
 
 function buildKPIs(data) {
 
-  const totalSales = sumColumn(data, "Sales");
+  const totalSales = sumColumn(data, "Total Sales Qty");
+
   const totalRevenue = sumColumn(data, "Revenue");
-  const totalReturns = sumColumn(data, "Returns");
+
+  const totalReturns = sumColumn(data, "Total Return Qty");
 
   const returnRate =
     totalSales > 0
@@ -70,39 +76,52 @@ function buildCharts(data) {
 
   data.forEach(row => {
 
-    const month = row.Month || "Unknown";
+    const month = row["Month"] || "Unknown";
 
     if (!monthlyMap[month]) {
+
       monthlyMap[month] = {
         sales: 0,
         revenue: 0
       };
     }
 
-    monthlyMap[month].sales += Number(row.Sales || 0);
-    monthlyMap[month].revenue += Number(row.Revenue || 0);
+    monthlyMap[month].sales +=
+      Number(row["Total Sales Qty"] || 0);
+
+    monthlyMap[month].revenue +=
+      Number(row["Revenue"] || 0);
   });
 
   const labels = Object.keys(monthlyMap);
 
-  const salesValues = labels.map(month => monthlyMap[month].sales);
-  const revenueValues = labels.map(month => monthlyMap[month].revenue);
+  const salesValues =
+    labels.map(month => monthlyMap[month].sales);
+
+  const revenueValues =
+    labels.map(month => monthlyMap[month].revenue);
 
   new Chart(document.getElementById("monthlySalesChart"), {
+
     type: "bar",
+
     data: {
       labels,
+
       datasets: [{
-        label: "Sales",
+        label: "Sales Qty",
         data: salesValues
       }]
     }
   });
 
   new Chart(document.getElementById("monthlyRevenueChart"), {
+
     type: "line",
+
     data: {
       labels,
+
       datasets: [{
         label: "Revenue",
         data: revenueValues
@@ -113,7 +132,8 @@ function buildCharts(data) {
 
 function buildTable(data) {
 
-  const tbody = document.getElementById("stylesTableBody");
+  const tbody =
+    document.getElementById("stylesTableBody");
 
   tbody.innerHTML = "";
 
@@ -122,14 +142,21 @@ function buildTable(data) {
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
-      <td>${row.Brand || ""}</td>
-      <td>${row.Style_ID || ""}</td>
-      <td>${row.Article_Type || ""}</td>
-      <td>${formatNumber(row.Sales || 0)}</td>
-      <td>${formatCurrency(row.Revenue || 0)}</td>
-      <td>${formatNumber(row.Returns || 0)}</td>
-      <td>${row.Return_Percentage || 0}%</td>
-      <td>${row.ROS || 0}</td>
+      <td>${row["Brand"] || ""}</td>
+
+      <td>${row["Style id"] || ""}</td>
+
+      <td>${row["Article Type"] || ""}</td>
+
+      <td>${formatNumber(row["Total Sales Qty"] || 0)}</td>
+
+      <td>${formatCurrency(row["Revenue"] || 0)}</td>
+
+      <td>${formatNumber(row["Total Return Qty"] || 0)}</td>
+
+      <td>${row["Return %"] || 0}%</td>
+
+      <td>${row["ROS"] || 0}</td>
     `;
 
     tbody.appendChild(tr);
@@ -138,7 +165,8 @@ function buildTable(data) {
 
 function setupSearch(data) {
 
-  const input = document.getElementById("searchInput");
+  const input =
+    document.getElementById("searchInput");
 
   input.addEventListener("input", function() {
 
@@ -147,11 +175,14 @@ function setupSearch(data) {
     const filtered = data.filter(row => {
 
       return (
-        String(row.Style_ID || "")
+
+        String(row["Style id"] || "")
           .toLowerCase()
           .includes(value)
+
         ||
-        String(row.Article_Type || "")
+
+        String(row["Article Type"] || "")
           .toLowerCase()
           .includes(value)
       );
@@ -164,7 +195,9 @@ function setupSearch(data) {
 function sumColumn(data, columnName) {
 
   return data.reduce((sum, row) => {
+
     return sum + Number(row[columnName] || 0);
+
   }, 0);
 }
 
@@ -176,10 +209,15 @@ function formatNumber(value) {
 function formatCurrency(value) {
 
   return new Intl.NumberFormat("en-IN", {
+
     style: "currency",
+
     currency: "INR",
+
     maximumFractionDigits: 0
+
   }).format(value);
 }
 
 loadExcel();
+```
